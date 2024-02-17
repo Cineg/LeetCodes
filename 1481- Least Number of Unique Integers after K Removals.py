@@ -18,7 +18,6 @@ class Solution:
             k -= count[0]
             count.pop(0)
 
-        print(len(count))
         return len(count)
 
 
