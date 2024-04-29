@@ -11,7 +11,6 @@ class TimeMap:
 
         self.data[key][timestamp] = value
         self.timestamps[key].append(timestamp)
-        self.timestamps[key].sort()
 
     def get(self, key: str, timestamp: int) -> str:
         if key not in self.data:
@@ -25,8 +24,6 @@ class TimeMap:
 
     def _get_closest(self, key: str, timestamp: int) -> int:
         arr = self.timestamps[key]
-        if len(arr) == 1 and arr[0] < timestamp:
-            return arr[0]
 
         l: int = 0
         r: int = len(arr) - 1
