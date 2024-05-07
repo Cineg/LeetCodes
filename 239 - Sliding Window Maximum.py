@@ -1,103 +1,102 @@
-class Heap:
+class Node:
+    def __init__(self, val: int) -> None:
+        self.val: int = val
+        self.next: Node | None = None
+        self.prev: Node | None = None
+
+
+class Deque:
     def __init__(self) -> None:
-        self.len: int = 0
-        self.items: list[int] = []
+        self.length: int = 0
+        self.head: Node | None = None
+        self.tail: Node | None = None
 
-    def peek(self) -> int | None:
-        if self.items:
-            return self.items[0]
+    def peekright(self) -> None | int:
+        return self.tail.val if self.tail else None
 
-        return None
+    def peekleft(self) -> None | int:
+        return self.head.val if self.head else None
 
-    def append(self, val: int) -> None:
-        self.items.append(val)
-    
-        self._bubble_up(self.len)
-        self.len += 1
+    def popleft(self) -> None | int:
+        if not self.head:
+            return None
 
-    def pop(self, val: int) -> None:
-        idx: int = 0
-        while True:
-            if self.items[idx] == val:
-                break
-            idx += 1
-        
-        self.items[idx], self.items[-1] = self.items[-1], self.items[idx]
+        val: int = self.head.val
+        self.length -= 1
 
-        self.items.pop()
-        self.len -= 1
-        
-        self._bubble_down(idx)
-
-    def _bubble_up(self, idx: int) -> None:
-        parent_idx: int = (idx - 1) // 2
-        if parent_idx < 0:
-            return
-
-        if self.items[idx] > self.items[parent_idx]:
-            
-            self.items[idx], self.items[parent_idx] = (
-                self.items[parent_idx],
-                self.items[idx],
-            )
-            
-            self._bubble_up(parent_idx)
-
-        return
-
-    def _bubble_down(self, idx: int) -> None:
-        ch: int = self._get_child_idx(idx)
-        if ch < 0:
-            return
-
-        if self.items[ch] < self.items[idx]:
-            self.items[ch], self.items[idx] = self.items[idx], self.items[ch]
-            self._bubble_down(ch)
-
-        return
-
-    def _get_child_idx(self, idx: int) -> int:
-        l: int = idx * 2 + 1
-        r: int = idx * 2 + 2
-
-        if l >= self.len:
-            return -1
-        if r >= self.len:
-            return l
-
-        if self.items[l] < self.items[r]:
-            return l
+        if self.length == 0:
+            self.head = self.tail = None
         else:
-            return r
+            head: Node | None = self.head.next
+            self.head.next = None
+            if head:
+                head.prev = None
+                self.head = head
 
- 
+        return val
+
+    def popright(self) -> None | int:
+        if not self.tail:
+            return None
+
+        val: int = self.tail.val
+        self.length -= 1
+
+        if self.length == 0:
+            self.head = self.tail = None
+
+        else:
+            tail: Node | None = self.tail.prev
+            self.tail.prev = None
+            if tail:
+                tail.next = None
+                self.tail = tail
+
+        return val
+
+    def push(self, val: int) -> None:
+        self.length += 1
+        if self.length == 1:
+            self.head = self.tail = Node(val)
+            return
+
+        if not self.tail:
+            return
+
+        node = Node(val)
+        self.tail.next = node
+        node.prev = self.tail
+        self.tail = node
+
 
 class Solution:
     def maxSlidingWindow(self, nums: list[int], k: int) -> list[int]:
-        heap = Heap()
-        for i in range(k):
-            heap.append(nums[i])
-
         res: list[int] = []
+        dq = Deque()
+
         l: int = 0
-        while l + k <= len(nums):
-            max_val: int | None = heap.peek()
-            if max_val:
-                res.append(max_val)
+        r: int = 0
 
-            if l + k == len(nums):
-                break
+        while r < len(nums):
+            while dq.length > 0 and nums[dq.peekright()] < nums[r]:
+                dq.popright()
+            dq.push(r)
 
-            heap.pop(nums[l])
-            heap.append(nums[l + k])
-            l += 1
+            if l > dq.peekleft():
+                dq.popleft()
+
+            if r + 1 >= k:
+                res.append(nums[dq.peekleft()])
+                l += 1
+
+            r += 1
 
         return res
 
 
 def main() -> None:
     sol = Solution()
-    nums: list[int] = [1,3,-1,-3,5,3,6,7]
+    nums: list[int] = [1, 3, -1, -3, 5, 3, 6, 7]
     k: int = 3
 
     res: list[int] = sol.maxSlidingWindow(nums, k)
